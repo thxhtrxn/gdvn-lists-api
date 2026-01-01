@@ -6,7 +6,7 @@ import { supabase } from "@/utils/supabase";
 const creatorsRoute = new Elysia({ prefix: "/creators" });
 
 creatorsRoute.get(
-	"/creators",
+	"/",
 	async ({ set }) => {
 		const { data, error } = await supabase.from("creators").select("*");
 
