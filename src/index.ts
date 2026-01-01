@@ -1,42 +1,36 @@
-import { swaggerUI } from "@hono/swagger-ui";
-import { Hono } from "hono";
-import { supabase } from "./utils/supabase";
+import { cors } from "@elysiajs/cors";
+import { fromTypes, openapi } from "@elysiajs/openapi";
+import { Elysia } from "elysia";
+import * as z from "zod";
+import { version } from "../package.json";
+import { creatorsRoute } from "./routes/creators.route";
 
-const app = new Hono();
+const app = new Elysia();
 
-const openApiDoc = {
-	openapi: "3.0.0",
-	info: {
-		title: "API Documentation",
-		version: "1.0.0",
-		description: "API documentation",
-	},
-	paths: {
-		"/": {
-			get: {
-				summary: "Test",
-				responses: {
-					"200": {
-						description: "OK",
-					},
-				},
-			},
+app.listen(3000);
+
+app.use(cors());
+app.use(
+	openapi({
+		references: fromTypes(
+			Bun.env.NODE_ENV === "production" ? "dist/index.d.ts" : "src/index.ts",
+		),
+		path: "/docs",
+		mapJsonSchema: {
+			zod: z.toJSONSchema,
 		},
-	},
-};
+	}),
+);
 
-app.get("/", async (c) => {
-	const { data, error } = await supabase.from("creators").select("*");
-
-	if (error) {
-		return c.json({ error: error.message }, 500);
-	}
-
-	return c.json(data);
+app.get("/", () => {
+	return {
+		timestamp: new Date().toISOString(),
+		version: version,
+	};
 });
 
-app.get("/doc", (c) => c.json(openApiDoc));
+app.use(creatorsRoute);
 
-app.get("/docs", swaggerUI({ url: "/doc" }));
-
-export default app;
+console.log(
+	`🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`,
+);
