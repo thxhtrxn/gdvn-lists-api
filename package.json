@@ -7,9 +7,12 @@
 		"lint": "biome check",
 		"format": "bunx biome format --write",
 		"lint-staged": "lint-staged",
-		"db:backup": "supabase db diff -f my_schema && supabase db dump --local --data-only > supabase/seed.sql"
+		"db:backup": "supabase db diff -f my_schema; supabase db dump --local --data-only > supabase/seed.sql",
+		"db:update-types": "supabase gen types typescript --local > ./src/types/supabase.ts",
+		"db:sync": "echo y | supabase db pull; supabase db reset; bun db:update-types"
 	},
 	"dependencies": {
+		"@hono/swagger-ui": "^0.5.3",
 		"@supabase/supabase-js": "^2.89.0",
 		"hono": "^4.11.3"
 	},
